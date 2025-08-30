@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Финансовый Дашборд</title>
+
+  <!-- Chart.js + Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9fafb; color: #1e3a8a; margin: 0; padding: 0; }
+    header { text-align: center; padding: 2rem; background: #2563eb; color: white; }
+    h1 { margin: 0; font-size: 2.2rem; }
+    section { padding: 2rem; text-align: center; }
+    #controls { margin-bottom: 1rem; display:flex; gap:0.5rem; justify-content:center; align-items:center; flex-wrap:wrap; }
+    select { padding: 0.5rem 1rem; font-size: 1rem; }
+    #status { margin-left: 0.5rem; font-size:0.95rem; color:#374151; }
+    .chart-wrap { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+    canvas { width: 100% !important; height: 600px !important; display: block; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); }
+    .note { max-width:1200px; margin:12px auto; color:#374151; font-size:0.9rem; text-align:center; }
+    @media (max-width:700px) {
+      canvas { height: 420px !important; }
+      h1 { font-size:1.6rem; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Финансовый Дашборд</h1>
+</header>
+
+<section id="dashboard">
+  <div id="controls">
+    <label for="asset-select" style="align-self:center;">Актив:</label>
+    <select id="asset-select" aria-label="Выбор актива">
+      <option value="bitcoin">Bitcoin (BTC)</option>
+      <option value="ethereum">Ethereum (ETH)</option>
+      <option value="AAPL">Apple (AAPL)</option>
+      <option value="TSLA">Tesla (TSLA)</option>
+    </select>
+    <div id="status" aria-live="polite"></div>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="priceChart" role="img" aria-label="График цены"></canvas>
+  </div>
+
+  <p class="note">
+    Примечание: Alpha Vantage имеет лимиты запросов. Встраивание API-ключа в frontend небезопасно — для реального приложения используйте серверный прокси.
+  </p>
+</section>
+
+<script>
+/*
+  Улучшенная версия дашборда:
+  - Крипта (CoinGecko): агрегируем по дням (последняя цена дня) за 7 дней
+  - Акции (AlphaVantage): используем "Time Series (Daily)", берём последние 7 дней
+  - Обрабатываем ошибки и лимиты API
+*/
+
+/* ⚠️ ВАЖНО: не храните секретные ключи в клиентском коде для продакшена.
+   Для демонстрации ключ здесь только как пример. */
+const API_KEY_ALPHA_VANTAGE = 'IP7U11KQV2MCHS10';
+
+const ctx = document.getElementById('priceChart').getContext('2d');
+let chart = null;
+const statusEl = document.getElementById('status');
+
+function setStatus(text, isError = false) {
+  statusEl.textContent = text || '';
+  statusEl.style.color = isError ? '#b91c1c' : '#374151';
+}
+
+/**
+ * Получает агрегированные за day данные: возвращает { labels: [даты...], prices: [числа...] }
+ * Для крипты: используем CoinGecko market_chart и агрегируем по дате (последняя точка дня).
+ * Для акций: используем AlphaVantage TIME_SERIES_DAILY.
+ */
+async function fetchSeriesFor7Days(symbol) {
+  try {
+    setStatus('Загрузка данных…');
+
+    if (['bitcoin','ethereum'].includes(symbol)) {
+      // CoinGecko: prices -> [ [timestamp_ms, price], ... ]
+      const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(symbol)}/market_chart?vs_currency=usd&days=7`;
+      const resp = await axios.get(url);
+      const pricesArray = resp.data && resp.data.prices;
+      if (!Array.isArray(pricesArray) || pricesArray.length === 0) {
+        throw new Error('Нет данных цен для выбранной криптовалюты.');
+      }
+
+      // агрегируем по дате (YYYY-MM-DD) — сохраняем последнюю цену за дату
+      const byDate = {};
+      for (const [ts, price] of pricesArray) {
+        const ymd = new Date(ts).toISOString().slice(0,10);
+        byDate[ymd] = price; // перезаписываем — останется последняя точка в дне
+      }
+
+      const allDates = Object.keys(byDate).sort(); // chronological ascending
+      const last7 = allDates.slice(-7);
+      const labels = last7.map(d => new Date(d).toLocaleDateString());
+      const prices = last7.map(d => Number(byDate[d] ?? 0));
+
+      return { labels, prices, type: 'crypto' };
+    } else {
+      // Alpha Vantage: TIME_SERIES_DAILY
+      if (!API_KEY_ALPHA_VANTAGE) throw new Error('API ключ Alpha Vantage не задан.');
+
+      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(symbol)}&apikey=${encodeURIComponent(API_KEY_ALPHA_VANTAGE)}`;
+      const resp = await axios.get(url);
+      const data = resp.data;
+
+      // Проверки на ошибки / лимиты
+      if (data['Error Message']) throw new Error(data['Error Message']);
+      if (data['Note']) throw new Error(data['Note']); // often rate-limit message
+      const ts = data['Time Series (Daily)'];
+      if (!ts) throw new Error('Нет дневных данных для выбранной акции.');
+
+      const allDates = Object.keys(ts).sort(); // ascending
+      const last7 = allDates.slice(-7);
+      const labels = last7.map(d => new Date(d).toLocaleDateString());
+      const prices = last7.map(d => {
+        const val = ts[d] && ts[d]['4. close'];
+        return val ? parseFloat(val) : 0;
+      });
+
+      return { labels, prices, type: 'stock' };
+    }
+  } catch (err) {
+    // пробросим текст ошибки вверх
+    const message = (err && err.message) ? err.message : 'Ошибка при загрузке данных';
+    throw new Error(message);
+  }
+}
+
+function renderChart(labels, prices, assetKey) {
+  // палитра (динамическая)
+  const colorFor = (k) => {
+    if (k === 'AAPL') return { border:'#2563eb', bg:'rgba(37,99,235,0.15)' };
+    if (k === 'TSLA') return { border:'#f97316', bg:'rgba(249,115,22,0.12)' };
+    if (k === 'bitcoin') return { border:'#f59e0b', bg:'rgba(245,158,11,0.12)' };
+    if (k === 'ethereum') return { border:'#10b981', bg:'rgba(16,185,129,0.12)' };
+    return { border:'#2563eb', bg:'rgba(37,99,235,0.12)' };
+  };
+
+  const c = colorFor(assetKey);
+
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: (assetKey || '').toUpperCase(),
+        data: prices,
+        borderColor: c.border,
+        backgroundColor: c.bg,
+        tension: 0.25,
+        fill: true,
+        pointRadius: 3,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      scales: {
+        x: { title: { display: true, text: 'Дата' } },
+        y: { title: { display: true, text: 'Цена ($)' }, beginAtZero: false }
+      }
+    }
+  });
+}
+
+async function updateChart() {
+  const asset = document.getElementById('asset-select').value;
+  try {
+    setStatus('Загружаем данные…');
+    const series = await fetchSeriesFor7Days(asset);
+    if (!series || !Array.isArray(series.labels) || series.labels.length === 0) {
+      setStatus('Нет данных для отображения', true);
+      renderChart(['Нет данных'], [0], asset);
+      return;
+    }
+    renderChart(series.labels, series.prices, asset);
+    setStatus(`Обновлено: ${new Date().toLocaleString()}`);
+  } catch (err) {
+    // показать компактное сообщение пользователю
+    setStatus('Ошибка: ' + (err.message || 'неизвестная'), true);
+    console.error(err);
+    // отрисуем пустой график-заглушку
+    renderChart(['Нет данных'], [0], asset);
+  }
+}
+
+// init
+document.getElementById('asset-select').addEventListener('change', updateChart);
+updateChart(); // первый рендер
+</script>
+</body>
+</html>

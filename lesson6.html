@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIvest — Уровень 6: Теория и тест</title>
+<style>
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f9fafb; color:#1e3a8a; }
+  body.dark { background:#0b1220; color:#e6eefc; }
+  header { background:#2563eb; color:white; padding:1rem; text-align:center; }
+  main { max-width:800px; margin:2rem auto; padding:0 1rem; }
+  h2 { color:#2563eb; }
+  p { margin-bottom:1rem; line-height:1.5; }
+  .btn { padding:.5rem 1rem; border:none; border-radius:.5rem; background:#2563eb; color:white; cursor:pointer; margin-top:1rem; }
+  .question { margin-top:2rem; padding:1rem; border:1px solid #2563eb; border-radius:.75rem; background:#e0f2fe; }
+  .options { margin-top:1rem; display:flex; flex-direction:column; gap:.5rem; }
+  .options label { display:flex; align-items:center; gap:.5rem; cursor:pointer; }
+  .feedback { margin-top:1rem; font-weight:bold; }
+  #nextLevel { display:none; margin-top:1.5rem; text-align:center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Уровень 6: Долгосрочные инвестиции</h1>
+</header>
+<main>
+  <section id="theory">
+    <h2>Теория</h2>
+    <p>Долгосрочные инвестиции предполагают удержание активов в течение нескольких лет, чтобы воспользоваться ростом стоимости и сложным процентом.</p>
+    <p>Преимущества:</p>
+    <ul>
+      <li>Снижение влияния краткосрочных колебаний рынка.</li>
+      <li>Возможность получать дивиденды и проценты от вложений.</li>
+      <li>Эффект сложного процента увеличивает капитал со временем.</li>
+    </ul>
+    <p>Важно регулярно анализировать портфель и при необходимости ребалансировать активы.</p>
+    <button class="btn" onclick="showQuestion()">Перейти к тесту</button>
+  </section>
+
+  <section id="question" style="display:none;">
+    <h2>Тест</h2>
+    <div class="question" id="q1">
+      <p>Что является ключевым преимуществом долгосрочного инвестирования?</p>
+      <div class="options">
+        <label><input type="radio" name="q1" value="wrong"> Быстрое получение прибыли</label>
+        <label><input type="radio" name="q1" value="right"> Эффект сложного процента и рост капитала</label>
+        <label><input type="radio" name="q1" value="wrong"> Полное отсутствие рисков</label>
+      </div>
+      <button class="btn" onclick="checkAnswer()">Проверить</button>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </section>
+
+  <div id="nextLevel">
+    <button class="btn" onclick="goNextLevel()">Перейти к уровню 7</button>
+  </div>
+</main>
+
+<script>
+function showQuestion(){
+  document.getElementById('theory').style.display = 'none';
+  document.getElementById('question').style.display = 'block';
+}
+
+function checkAnswer(){
+  const radios = document.getElementsByName('q1');
+  let selected = null;
+  radios.forEach(r => { if(r.checked) selected = r.value; });
+  const feedback = document.getElementById('feedback');
+  if(!selected){ feedback.textContent = "Выберите ответ!"; return; }
+  if(selected === 'right'){
+    feedback.textContent = "Верно! Долгосрочные инвестиции приносят рост капитала и используют эффект сложного процента.";
+    // сохраняем прогресс
+    const progress = JSON.parse(localStorage.getItem('lessonProgress')||"{}");
+    progress[5] = true; // индекс уровня 6
+    localStorage.setItem('lessonProgress', JSON.stringify(progress));
+    // показать кнопку перехода на следующий уровень
+    document.getElementById('nextLevel').style.display = 'block';
+  } else {
+    feedback.textContent = "Неверно. Попробуйте ещё раз.";
+  }
+}
+
+function goNextLevel(){
+  window.location.href = 'lesson7.html';
+}
+</script>
+</body>
+</html>

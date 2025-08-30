@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Контакты | AIvest</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      width: 100%;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+    }
+
+    header .brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #222;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav ul li a {
+      color: #222;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color .3s;
+    }
+
+    nav ul li a:hover {
+      color: #1e6091;
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
+      color: #1b3a57;
+    }
+
+    .contacts-container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .contact-card {
+      background: #fff;
+      padding: 2rem 1.5rem;
+      border-radius: 1.2rem;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      transition: transform .3s, box-shadow .3s;
+    }
+
+    .contact-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+    }
+
+    .contact-icon {
+      font-size: 2.5rem;
+      color: #1e6091;
+      margin-bottom: 1rem;
+    }
+
+    .contact-title {
+      font-size: 1.3rem;
+      margin-bottom: .5rem;
+      font-weight: bold;
+      color: #1b3a57;
+    }
+
+    .contact-text {
+      font-size: .95rem;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    footer {
+      padding: 1rem;
+      text-align: center;
+      font-size: .9rem;
+      background: rgba(255,255,255,0.3);
+      margin-top: auto;
+      color: #1b3a57;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">AIvest</div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Главная</a></li>
+        <li><a href="lessons.html">Уроки</a></li>
+        <li><a href="functions.html">Функции</a></li>
+        <li><a href="about.html">О проекте</a></li>
+        <li><a href="contacts.html">Контакты</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Свяжитесь с нами</h1>
+    <div class="contacts-container">
+
+      <div class="contact-card">
+        <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+        <div class="contact-title">Email</div>
+        <div class="contact-text">
+          Напишите нам на <br>
+          <strong>support@aivest.ru</strong>
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-icon"><i class="fas fa-phone"></i></div>
+        <div class="contact-title">Телефон</div>
+        <div class="contact-text">
+          Связаться по телефону: <br>
+          <strong>+7 (928) 123-45-67</strong>
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+        <div class="contact-title">Адрес</div>
+        <div class="contact-text">
+          Россия, Москва
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-icon"><i class="fab fa-telegram"></i></div>
+        <div class="contact-title">Соцсети</div>
+        <div class="contact-text">
+          Мы в Telegram и VK: <br>
+          <strong>@aivest</strong>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    © 2025 AIvest — Финансовая грамотность для всех
+  </footer>
+</body>
+</html>

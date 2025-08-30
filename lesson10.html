@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIvest — Уровень 10: Финальный тест</title>
+<style>
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f9fafb; color:#1e3a8a; }
+  body.dark { background:#0b1220; color:#e6eefc; }
+  header { background:#2563eb; color:white; padding:1rem; text-align:center; }
+  main { max-width:900px; margin:2rem auto; padding:0 1rem; }
+  h2 { color:#2563eb; }
+  p { margin-bottom:1rem; line-height:1.5; }
+  .btn { padding:.5rem 1rem; border:none; border-radius:.5rem; background:#2563eb; color:white; cursor:pointer; margin-top:1rem; }
+  .question { margin-top:1.5rem; padding:1rem; border:1px solid #2563eb; border-radius:.75rem; background:#e0f2fe; }
+  .options { margin-top:1rem; display:flex; flex-direction:column; gap:.5rem; }
+  .options label { display:flex; align-items:center; gap:.5rem; cursor:pointer; }
+  .feedback { margin-top:1rem; font-weight:bold; }
+  #results { display:none; margin-top:2rem; text-align:center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Уровень 10: Финальный тест</h1>
+</header>
+<main>
+  <section id="theory">
+    <h2>Обзор теории</h2>
+    <p>Поздравляем! Вы прошли все предыдущие уровни. В финальном тесте проверим знания по основам инвестирования, диверсификации, риску, доходности, поведенческим финансам и симуляциям.</p>
+    <p>Напоминаем основные правила:</p>
+    <ul>
+      <li>Диверсификация снижает риск.</li>
+      <li>Соотношение риска и доходности — ключевой фактор при выборе инвестиций.</li>
+      <li>Эмоции влияют на решения, поэтому стратегия важнее импульсов.</li>
+      <li>Различные активы: акции, облигации, криптовалюты, недвижимость.</li>
+      <li>История и данные помогают принимать обоснованные решения.</li>
+    </ul>
+    <button class="btn" onclick="startTest()">Начать тест</button>
+  </section>
+
+  <section id="test" style="display:none;">
+    <h2>Финальный тест (10 вопросов)</h2>
+    <div id="questionsContainer"></div>
+    <button class="btn" onclick="submitTest()">Завершить тест</button>
+  </section>
+
+  <div id="results">
+    <h2>Результаты</h2>
+    <p id="score"></p>
+    <button class="btn" onclick="restartTest()">Пройти заново</button>
+  </div>
+</main>
+
+<script>
+// вопросы для финального теста (10 вопросов)
+const questions = [
+  { q:"Что является ключевой целью инвестирования?", options:["Сохранять деньги под подушкой","Увеличивать капитал со временем","Тратить на развлечения"], answer:1 },
+  { q:"Что такое диверсификация?", options:["Вкладывать всё в один актив","Распределять инвестиции между разными активами","Не инвестировать"], answer:1 },
+  { q:"Чем выше потенциальная доходность актива, тем:", options:["Выше риск","Ниже риск","Риск не меняется"], answer:0 },
+  { q:"Какие активы обычно считаются более стабильными?", options:["Облигации","Криптовалюты","Акции стартапов"], answer:0 },
+  { q:"Что помогает уменьшить влияние эмоций на инвестиции?", options:["Следовать стратегии","Читать только новости","Инвестировать в хайп"], answer:0 },
+  { q:"Что такое облигация?", options:["Долевой актив компании","Долговая бумага с фиксированным доходом","Цифровой токен"], answer:1 },
+  { q:"Пример диверсифицированного портфеля:", options:["100% в акции одной компании","50% акции, 30% облигации, 20% криптовалюта","100% в наличные"], answer:1 },
+  { q:"Как психология инвестора влияет на рынок?", options:["Не влияет","Может приводить к панике и спекуляциям","Всегда снижает доход"], answer:1 },
+  { q:"Что означает термин 'ликвидность'?", options:["Способность актива быстро превратиться в деньги","Высокий риск","Потенциал дохода"], answer:0 },
+  { q:"Что важно учитывать при оценке инвестиционного решения?", options:["Риск, доходность и цели","Только доходность","Только рекомендации друзей"], answer:0 },
+];
+
+function startTest(){
+  document.getElementById('theory').style.display='none';
+  document.getElementById('test').style.display='block';
+  renderQuestions();
+}
+
+function renderQuestions(){
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML='';
+  questions.forEach((q,i)=>{
+    const div = document.createElement('div');
+    div.className='question';
+    let html = `<p><strong>Вопрос ${i+1}:</strong> ${q.q}</p><div class="options">`;
+    q.options.forEach((opt,j)=>{
+      html += `<label><input type="radio" name="q${i}" value="${j}"> ${opt}</label>`;
+    });
+    html += '</div>';
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+}
+
+function submitTest(){
+  let score=0;
+  questions.forEach((q,i)=>{
+    const radios = document.getElementsByName(`q${i}`);
+    radios.forEach(r=>{
+      if(r.checked && parseInt(r.value)===q.answer) score++;
+    });
+  });
+  document.getElementById('test').style.display='none';
+  document.getElementById('results').style.display='block';
+  document.getElementById('score').textContent=`Вы ответили правильно на ${score} из ${questions.length} вопросов.`;
+  localStorage.setItem('lessonProgress', JSON.stringify({...JSON.parse(localStorage.getItem('lessonProgress')||"{}"), 9:true}));
+}
+
+function restartTest(){
+  document.getElementById('results').style.display='none';
+  document.getElementById('test').style.display='block';
+  renderQuestions();
+}
+</script>
+
+<script>
+function startTest(){
+  document.getElementById('theory').style.display='none';
+  document.getElementById('test').style.display='block';
+  renderQuestions();
+}
+
+function renderQuestions(){
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML='';
+  questions.forEach((q,i)=>{
+    const div = document.createElement('div');
+    div.className='question';
+    let html = `<p><strong>Вопрос ${i+1}:</strong> ${q.q}</p><div class="options">`;
+    q.options.forEach((opt,j)=>{
+      html += `<label><input type="radio" name="q${i}" value="${j}"> ${opt}</label>`;
+    });
+    html += '</div>';
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+}
+
+function submitTest(){
+  let score=0;
+  questions.forEach((q,i)=>{
+    const radios = document.getElementsByName(`q${i}`);
+    radios.forEach(r=>{
+      if(r.checked && parseInt(r.value)===q.answer) score++;
+    });
+  });
+  document.getElementById('test').style.display='none';
+  document.getElementById('results').style.display='block';
+  const scoreText = `Вы ответили правильно на ${score} из ${questions.length} вопросов.`;
+  document.getElementById('score').textContent = scoreText;
+
+  // Сохраняем прогресс
+  localStorage.setItem('lessonProgress', JSON.stringify({...JSON.parse(localStorage.getItem('lessonProgress')||"{}"), 9:true}));
+
+  // Поздравление если >=8 правильных
+  if(score >= 8){
+    const confetti = document.createElement('div');
+    confetti.textContent = "🎉 Поздравляем! Вы прошли все уровни! 🎉";
+    confetti.style.fontSize = "1.6rem";
+    confetti.style.fontWeight = "700";
+    confetti.style.color = "#2563eb";
+    confetti.style.marginTop = "1rem";
+    confetti.style.textAlign = "center";
+    confetti.style.animation = "bounce 1s ease infinite alternate";
+    document.getElementById('results').appendChild(confetti);
+
+    // простая анимация
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes bounce {
+        from { transform: translateY(0); }
+        to { transform: translateY(-12px); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+function restartTest(){
+  document.getElementById('results').style.display='none';
+  document.getElementById('test').style.display='block';
+  renderQuestions();
+}
+</script>
+
+</body>
+</html>

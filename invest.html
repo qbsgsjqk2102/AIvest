@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Симулятор Инвестиций</title>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; background:#f9fafb; color:#1e3a8a; margin:0; padding:0;}
+  header { text-align:center; padding:2rem; background:#2563eb; color:white;}
+  h1 { margin:0; font-size:2.5rem;}
+  section { padding:2rem; max-width:900px; margin:0 auto;}
+  select, input, button { padding:0.5rem; font-size:1rem; margin:0.5rem 0;}
+  button { cursor:pointer; border:none; border-radius:6px; background:#2563eb; color:white; transition:0.2s;}
+  button:hover { background:#1e40af; }
+  table { width:100%; border-collapse: collapse; margin-top:1rem; background:white; border-radius:10px; overflow:hidden; box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+  th, td { padding:0.8rem; border-bottom:1px solid #ddd; text-align:center;}
+  th { background:#2563eb; color:white;}
+  canvas { width:100% !important; max-width:900px; height:400px !important; margin-top:2rem; background:white; border-radius:10px; padding:1rem; box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Симулятор Инвестиций</h1>
+</header>
+
+<section>
+  <p>Баланс: $<span id="balance">10000.00</span></p>
+
+  <label for="asset">Выберите актив:</label>
+  <select id="asset">
+    <option value="bitcoin">Bitcoin (BTC)</option>
+    <option value="ethereum">Ethereum (ETH)</option>
+    <option value="AAPL">Apple (AAPL)</option>
+    <option value="TSLA">Tesla (TSLA)</option>
+  </select><br>
+
+  <label for="amount">Количество:</label>
+  <input type="number" id="amount" min="0" step="0.0001" placeholder="0.01"><br>
+
+  <button id="buyBtn">Купить</button>
+  <button id="sellBtn">Продать</button>
+  <button id="resetBtn" style="background:#ef4444; margin-left:0.5rem;">Сбросить данные</button>
+
+  <h2>История сделок</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Актив</th>
+        <th>Тип</th>
+        <th>Количество</th>
+        <th>Цена</th>
+        <th>Дата</th>
+      </tr>
+    </thead>
+    <tbody id="history"></tbody>
+  </table>
+
+  <h2>Стоимость портфеля</h2>
+  <canvas id="portfolioChart"></canvas>
+
+  <h2>Распределение активов</h2>
+  <canvas id="allocationChart"></canvas>
+</section>
+
+<script>
+let balance = 10000;
+let holdings = {};
+let history = [];
+let portfolioChart = null;
+let allocationChart = null;
+
+// Локальные цены для акций (пример)
+const stockPrices = { AAPL: 175.00, TSLA: 720.00 };
+const palette = ['#2563eb','#3b82f6','#60a5fa','#93c5fd','#a5b4fc','#c7d2fe'];
+
+// === Работа с localStorage (устойчиво к некорректным данным) ===
+function saveData() {
+  try {
+    localStorage.setItem('balance', balance.toString());
+    localStorage.setItem('holdings', JSON.stringify(holdings));
+    localStorage.setItem('history', JSON.stringify(history));
+  } catch (err) {
+    console.error('Ошибка сохранения в localStorage:', err);
+  }
+}
+
+function loadData() {
+  try {
+    const sb = localStorage.getItem('balance');
+    const sh = localStorage.getItem('holdings');
+    const hist = localStorage.getItem('history');
+
+    if (sb !== null) {
+      const parsed = parseFloat(sb);
+      if (!Number.isNaN(parsed)) balance = parsed;
+    }
+
+    if (sh) {
+      try { holdings = JSON.parse(sh) || {}; } catch(e) { holdings = {}; }
+    }
+
+    if (hist) {
+      try { history = JSON.parse(hist) || []; } catch(e) { history = []; }
+    }
+  } catch (err) {
+    console.error('Ошибка загрузки из localStorage:', err);
+    balance = 10000; holdings = {}; history = [];
+  }
+
+  document.getElementById('balance').textContent = balance.toFixed(2);
+  updateHistory();
+}
+
+// Получение текущей цены
+async function getPrice(symbol) {
+  if (['AAPL','TSLA'].includes(symbol)) return stockPrices[symbol];
+  try {
+    const response = await axios.get(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(symbol)}&vs_currencies=usd`
+    );
+    const price = response.data && response.data[symbol] && response.data[symbol].usd;
+    return (typeof price === 'number' && !Number.isNaN(price)) ? price : null;
+  } catch (err) {
+    console.error('Ошибка при получении цены:', err);
+    return null;
+  }
+}
+
+// Обновление истории и графиков
+async function updateHistory() {
+  const tbody = document.getElementById('history');
+  tbody.innerHTML = '';
+  history.forEach(trade => {
+    const amount = (typeof trade.amount === 'number') ? trade.amount : parseFloat(trade.amount) || 0;
+    const row = `<tr>
+      <td>${trade.asset}</td>
+      <td>${trade.type}</td>
+      <td>${amount.toFixed(4)}</td>
+      <td>$${(trade.price || 0).toFixed(2)}</td>
+      <td>${trade.date}</td>
+    </tr>`;
+    tbody.innerHTML += row;
+  });
+
+  await updatePortfolioChart();
+  await updateAllocationChart();
+}
+
+// Покупка актива
+async function buyAsset() {
+  const asset = document.getElementById('asset').value;
+  const amountInput = document.getElementById('amount').value;
+  const amount = parseFloat(amountInput);
+
+  if (Number.isNaN(amount) || amount <= 0) {
+    return alert('Некорректные данные: укажите положительное количество.');
+  }
+
+  const price = await getPrice(asset);
+  if (price === null) return alert('Не удалось получить цену. Попробуйте позже.');
+
+  const cost = amount * price;
+  if (cost > balance) return alert('Недостаточно средств');
+
+  balance -= cost;
+  holdings[asset] = (holdings[asset] || 0) + amount;
+  history.push({ asset, type: 'Покупка', amount, price, date: new Date().toLocaleString() });
+
+  document.getElementById('balance').textContent = balance.toFixed(2);
+  saveData();
+  await updateHistory();
+}
+
+// Продажа актива
+async function sellAsset() {
+  const asset = document.getElementById('asset').value;
+  const amountInput = document.getElementById('amount').value;
+  const amount = parseFloat(amountInput);
+
+  if (Number.isNaN(amount) || amount <= 0) {
+    return alert('Некорректные данные: укажите положительное количество.');
+  }
+
+  if (!holdings[asset] || holdings[asset] < amount) return alert('Недостаточно актива');
+
+  const price = await getPrice(asset);
+  if (price === null) return alert('Не удалось получить цену. Попробуйте позже.');
+
+  const revenue = amount * price;
+  balance += revenue;
+  holdings[asset] -= amount;
+  if (holdings[asset] <= 0) delete holdings[asset];
+
+  history.push({ asset, type: 'Продажа', amount, price, date: new Date().toLocaleString() });
+
+  document.getElementById('balance').textContent = balance.toFixed(2);
+  saveData();
+  await updateHistory();
+}
+
+// График стоимости портфеля
+async function updatePortfolioChart() {
+  const labels = Object.keys(holdings);
+  const data = [];
+
+  for (const asset of labels) {
+    const price = await getPrice(asset);
+    const value = (price === null || Number.isNaN(price)) ? 0 : ((holdings[asset] || 0) * price);
+    data.push(value);
+  }
+
+  if (portfolioChart) portfolioChart.destroy();
+  const ctx = document.getElementById('portfolioChart').getContext('2d');
+
+  if (labels.length === 0) {
+    portfolioChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: ['Нет активов'], datasets: [{ label: 'Стоимость портфеля ($)', data: [0], backgroundColor: ['#e5e7eb'] }] },
+      options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+    });
+    return;
+  }
+
+  portfolioChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Стоимость портфеля ($)', data, backgroundColor: labels.map((_,i)=> palette[i % palette.length]) }] },
+    options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+  });
+}
+
+// График распределения активов
+async function updateAllocationChart() {
+  const labels = Object.keys(holdings).filter(a => holdings[a] > 0);
+  const data = [];
+
+  for (const asset of labels) {
+    const price = await getPrice(asset);
+    const value = (price === null || Number.isNaN(price)) ? 0 : ((holdings[asset] || 0) * price);
+    data.push(value);
+  }
+
+  if (allocationChart) allocationChart.destroy();
+  const ctx = document.getElementById('allocationChart').getContext('2d');
+
+  if (labels.length === 0) {
+    allocationChart = new Chart(ctx, {
+      type: 'pie',
+      data: { labels: ['Нет активов'], datasets: [{ data: [1], backgroundColor: ['#e5e7eb'] }] },
+      options: { responsive:true, plugins:{ legend:{ display:false } } }
+    });
+    return;
+  }
+
+  allocationChart = new Chart(ctx, {
+    type: 'pie',
+    data: { labels, datasets: [{ data, backgroundColor: labels.map((_,i)=> palette[i % palette.length]) }] },
+    options: { responsive:true }
+  });
+}
+
+// Сброс данных
+function resetData() {
+  if (!confirm('Сбросить все локальные данные и вернуть начальный баланс?')) return;
+  localStorage.removeItem('balance');
+  localStorage.removeItem('holdings');
+  localStorage.removeItem('history');
+  balance = 10000; holdings = {}; history = [];
+  document.getElementById('balance').textContent = balance.toFixed(2);
+  saveData();
+  updateHistory();
+}
+
+// Навешиваем обработчики и инициализируем
+document.getElementById('buyBtn').addEventListener('click', buyAsset);
+document.getElementById('sellBtn').addEventListener('click', sellAsset);
+document.getElementById('resetBtn').addEventListener('click', resetData);
+
+// Загрузка сохранённых данных и первый рендер
+loadData();
+</script>
+
+</body>
+</html>
