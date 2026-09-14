@@ -297,11 +297,11 @@ with tabs[0]:
     st.markdown(current_lesson["concept"])
 
     # Practical task
-    st.info(f"🛠️ **Practical Exercise:** {current_lesson['practice']}")
+    st.info(f"**Practical Exercise:** {current_lesson['practice']}")
 
     # Quiz Block
     st.markdown("---")
-    st.markdown("### 📝 Module Assessment")
+    st.markdown("Module Assessment")
     quiz = current_lesson["quiz"]
 
     quiz_key = f"quiz_{current_lesson['id']}"
