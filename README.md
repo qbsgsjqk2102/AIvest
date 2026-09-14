@@ -28,12 +28,12 @@ A progressive academic sequence designed around foundational and quantitative in
 
 *Every module includes comprehensive conceptual write-ups, interactive single-choice evaluations with automated feedback loops, and actionable practical exercises.*
 
-### 2. 📈 Real-Time Telemetry & Predictive Price Engine
+### 2. Real-Time Telemetry & Predictive Price Engine
 - **Live Feeds:** Real-time data streaming for flagship market benchmarks: **Apple (AAPL)**, **Tesla (TSLA)**, **Bitcoin (BTC)**, and **Ethereum (ETH)** via `yfinance`.
 - **Telemetry Cards:** 52-week price bounds, intraday basis deltas, and automated percentage fluctuations.
 - **Predictive Trajectory:** Linear least-squares regression trendline projections across configurable horizons (7–60 trading sessions) rendered via interactive `Plotly` graphs.
 
-### 3. 💼 Sandbox Investment Simulator (Paper-Trading Desk)
+### 3. Sandbox Investment Simulator (Paper-Trading Desk)
 - **Live Capital Engine:** Real-time spot valuation with an initial $10,000 liquidity balance.
 - **Order Execution:** Instant execution of `BUY` and `SELL` market orders with validation checks (anti-insolvency and share balance clamping).
 - **Portfolio Analytics:** Dynamic asset weighting donut visualizations and an immutable chronological transaction audit trail.
