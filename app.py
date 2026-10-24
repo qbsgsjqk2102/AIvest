@@ -6,14 +6,12 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from sklearn.linear_model import LinearRegression
 
-#Page Configuration
 st.set_page_config(
     page_title="AIvest: Financial Learning & Investment Simulator",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-#Custom Styling
 st.markdown("""
 <style>
     .metric-card {
@@ -37,15 +35,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- Session State Initialization ---
 if "cash" not in st.session_state:
-    st.session_state.cash = 10000.0  # Starting balance: $10,000
+    st.session_state.cash = 10000.0 
 if "portfolio" not in st.session_state:
     st.session_state.portfolio = {"AAPL": 0.0, "TSLA": 0.0, "BTC-USD": 0.0, "ETH-USD": 0.0}
 if "history" not in st.session_state:
     st.session_state.history = []
 
-#10 Lessons Dataset
 LESSONS_DATA = [
     {
         "id": 1,
@@ -247,7 +243,6 @@ ASSETS = {
 }
 
 
-#Data Fetching & Linear Trend Forecast Helper
 @st.cache_data(ttl=3600)
 def load_market_data(ticker: str, period="1y"):
     df = yf.download(ticker, period=period, interval="1d", progress=False)
@@ -276,12 +271,9 @@ def generate_forecast(df: pd.DataFrame, forecast_days=30):
     return future_dates, predicted_prices, model.coef_[0]
 
 
-#Main Navigation
+#main navigation
 tabs = st.tabs(["Academy (10 Lessons & Tests)", "Real-Time Markets & Forecast", "Investment Simulator"])
 
-# ==========================================
-# TAB 1: ACADEMY (10 LESSONS + TESTS)
-# ==========================================
 with tabs[0]:
     st.header("Financial Literacy & Investment Curriculum")
     st.markdown(
@@ -296,10 +288,10 @@ with tabs[0]:
     st.subheader(current_lesson["title"])
     st.markdown(current_lesson["concept"])
 
-    # Practical task
+    # practical task
     st.info(f"**Practical Exercise:** {current_lesson['practice']}")
 
-    # Quiz Block
+    # quiz block
     st.markdown("---")
     st.markdown("Module Assessment")
     quiz = current_lesson["quiz"]
@@ -314,9 +306,7 @@ with tabs[0]:
         else:
             st.error(f"❌ Incorrect. {quiz['explain']}")
 
-# ==========================================
-# TAB 2: MARKETS & PREDICTIVE FORECASTING
-# ==========================================
+# markets and forecats
 with tabs[1]:
     st.header("Real-Time Markets & Price Forecast Engine")
     st.markdown("Live market tracking for **Apple, Tesla, Bitcoin, and Ethereum** with statistical trend forecasting.")
@@ -340,22 +330,18 @@ with tabs[1]:
                 price_delta = current_price - prev_price
                 pct_delta = (price_delta / prev_price) * 100
 
-                # Metrics Row
                 m1, m2, m3, m4 = st.columns(4)
                 m1.metric("Current Market Price", f"${current_price:,.2f}", delta=f"{pct_delta:.2f}% (1D)")
                 m2.metric("52-Week High", f"${float(hist_df['High'].max()):,.2f}")
                 m3.metric("52-Week Low", f"${float(hist_df['Low'].min()):,.2f}")
 
-                # Run forecast
                 future_dates, predictions, trend_slope = generate_forecast(hist_df, forecast_days=forecast_horizon)
                 forecast_target = predictions[-1]
                 m4.metric(f"{forecast_horizon}D Projected Trend", f"${forecast_target:,.2f}",
                           delta=f"Slope: {trend_slope:+.2f}/day")
 
-                # Plotly Chart
                 fig = go.Figure()
 
-                # Historical Price Trace
                 fig.add_trace(go.Scatter(
                     x=hist_df.index,
                     y=hist_df['Close'],
@@ -364,7 +350,6 @@ with tabs[1]:
                     line=dict(color='#2563eb', width=2)
                 ))
 
-                # Forecast Price Trace
                 fig.add_trace(go.Scatter(
                     x=future_dates,
                     y=predictions,
@@ -389,14 +374,11 @@ with tabs[1]:
         except Exception as e:
             st.error(f"Error fetching data: {e}")
 
-# ==========================================
-# TAB 3: INVESTMENT SIMULATOR
-# ==========================================
+# simulator
 with tabs[2]:
     st.header("Live Paper-Trading Simulator")
     st.markdown("Practice capital allocation in a simulated sandbox with your starting **$10,000** bankroll.")
 
-    # Portfolio calculations
     asset_prices = {}
     for name, ticker in ASSETS.items():
         try:
@@ -419,7 +401,8 @@ with tabs[2]:
 
     st.markdown("---")
 
-    # Trading Desk
+
+    
     st.subheader("Execute Trade Order")
     trade_col1, trade_col2, trade_col3, trade_col4 = st.columns(4)
 
@@ -474,7 +457,7 @@ with tabs[2]:
 
     st.markdown("---")
 
-    # Portfolio Breakdown Table & Chart
+
     h_col1, h_col2 = st.columns([1, 1])
     with h_col1:
         st.subheader("Your Asset Allocations")
