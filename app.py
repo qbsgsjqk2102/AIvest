@@ -252,27 +252,8 @@ def load_market_data(ticker: str, period="1y"):
     return df
 
 
-def generate_forecast(df: pd.DataFrame, forecast_days=30):
-    df_clean = df.reset_index()
-    df_clean['Day_Index'] = np.arange(len(df_clean))
-
-    X = df_clean[['Day_Index']]
-    y = df_clean['Close']
-
-    model = LinearRegression()
-    model.fit(X, y)
-
-    last_date = df_clean['Date'].iloc[-1]
-    future_dates = [last_date + timedelta(days=i) for i in range(1, forecast_days + 1)]
-    future_indices = np.arange(len(df_clean), len(df_clean) + forecast_days).reshape(-1, 1)
-
-    predicted_prices = model.predict(future_indices)
-
-    return future_dates, predicted_prices, model.coef_[0]
-
-
 #main navigation
-tabs = st.tabs(["Academy (10 Lessons & Tests)", "Real-Time Markets & Forecast", "Investment Simulator"])
+tabs = st.tabs(["Academy (10 Lessons & Tests)", "Real-Time Markets", "Investment Simulator"])
 
 with tabs[0]:
     st.header("Financial Literacy & Investment Curriculum")
