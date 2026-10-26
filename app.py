@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import yfinance as yf
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
+from datetime import datetime
 
 st.set_page_config(
     page_title="AIvest: Financial Learning & Investment Simulator",
@@ -173,7 +173,7 @@ LESSONS_DATA = [
             "correct": 1,
             "explain": "Ethereum's virtual machine allows developers to execute arbitrary decentralized application code."
         },
-        "practice": "Review the 30-day forecast curves for BTC and ETH in the Market Forecast module."
+        "practice": "Review the historical volatility and 52-week price swings for BTC and ETH in the Real-Time Markets module."
     },
     {
         "id": 8,
