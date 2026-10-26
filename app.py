@@ -308,15 +308,11 @@ with tabs[0]:
 
 # markets and forecats
 with tabs[1]:
-    st.header("Real-Time Markets & Price Forecast Engine")
-    st.markdown("Live market tracking for **Apple, Tesla, Bitcoin, and Ethereum** with statistical trend forecasting.")
+    st.header("Real-Time Markets & Historical Price Engine")
+    st.markdown("Live market tracking for **Apple, Tesla, Bitcoin, and Ethereum**.")
 
-    col_sel, col_days = st.columns([2, 1])
-    with col_sel:
-        asset_label = st.selectbox("Select Asset to Analyze:", list(ASSETS.keys()))
-        selected_ticker = ASSETS[asset_label]
-    with col_days:
-        forecast_horizon = st.slider("Forecast Horizon (Days):", min_value=7, max_value=60, value=30)
+    asset_label = st.selectbox("Select Asset to Analyze:", list(ASSETS.keys()))
+    selected_ticker = ASSETS[asset_label]
 
     with st.spinner("Fetching market telemetry..."):
         try:
@@ -330,15 +326,10 @@ with tabs[1]:
                 price_delta = current_price - prev_price
                 pct_delta = (price_delta / prev_price) * 100
 
-                m1, m2, m3, m4 = st.columns(4)
+                m1, m2, m3 = st.columns(3)
                 m1.metric("Current Market Price", f"${current_price:,.2f}", delta=f"{pct_delta:.2f}% (1D)")
                 m2.metric("52-Week High", f"${float(hist_df['High'].max()):,.2f}")
                 m3.metric("52-Week Low", f"${float(hist_df['Low'].min()):,.2f}")
-
-                future_dates, predictions, trend_slope = generate_forecast(hist_df, forecast_days=forecast_horizon)
-                forecast_target = predictions[-1]
-                m4.metric(f"{forecast_horizon}D Projected Trend", f"${forecast_target:,.2f}",
-                          delta=f"Slope: {trend_slope:+.2f}/day")
 
                 fig = go.Figure()
 
@@ -350,16 +341,8 @@ with tabs[1]:
                     line=dict(color='#2563eb', width=2)
                 ))
 
-                fig.add_trace(go.Scatter(
-                    x=future_dates,
-                    y=predictions,
-                    mode='lines',
-                    name=f'{forecast_horizon}-Day Trend Forecast',
-                    line=dict(color='#f97316', width=2.5, dash='dash')
-                ))
-
                 fig.update_layout(
-                    title=f"{asset_label} Historical Trends & Predictive Projection",
+                    title=f"{asset_label} Historical Price Trend",
                     xaxis_title="Date",
                     yaxis_title="Price ($ USD)",
                     template="plotly_white",
@@ -369,8 +352,6 @@ with tabs[1]:
 
                 st.plotly_chart(fig, use_container_width=True)
 
-                st.caption(
-                    "**Statistical Note:** Trend projection is generated via linear least-squares regression over the past 365 days of close prices for educational and strategic modeling.")
         except Exception as e:
             st.error(f"Error fetching data: {e}")
 
