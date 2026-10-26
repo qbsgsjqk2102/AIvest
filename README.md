@@ -7,7 +7,7 @@
 
 **AIvest** is an open-source, interactive web platform engineered to bridge the gap between theoretical financial literacy, data-driven market analytics, and risk-free quantitative portfolio experimentation.
 
-Built natively in Python using **Streamlit**, **Plotly**, and **Scikit-Learn**, the platform provides a complete environment featuring a 10-module economics curriculum, real-time telemetry from equity and cryptocurrency markets, algorithmic trend projection, and a full paper-trading execution desk.
+Built natively in Python using **Streamlit** and **Plotly**, the platform provides a complete environment featuring a 10-module economics curriculum, real-time telemetry and historical analysis from equity and cryptocurrency markets, and a full paper-trading execution desk.
 
 ---
 
@@ -28,10 +28,10 @@ A progressive academic sequence designed around foundational and quantitative in
 
 *Every module includes comprehensive conceptual write-ups, interactive single-choice evaluations with automated feedback loops, and actionable practical exercises.*
 
-### 2. Real-Time Telemetry & Predictive Price Engine
-- **Live Feeds:** Real-time data streaming for flagship market benchmarks: **Apple (AAPL)**, **Tesla (TSLA)**, **Bitcoin (BTC)**, and **Ethereum (ETH)** via `yfinance`.
+### 2. Real-Time Telemetry & Historical Market Analytics
+- **Live Feeds:** Real-time and historical pricing data for flagship market benchmarks: **Apple (AAPL)**, **Tesla (TSLA)**, **Bitcoin (BTC)**, and **Ethereum (ETH)** via `yfinance`.
 - **Telemetry Cards:** 52-week price bounds, intraday basis deltas, and automated percentage fluctuations.
-- **Predictive Trajectory:** Linear least-squares regression trendline projections across configurable horizons (7–60 trading sessions) rendered via interactive `Plotly` graphs.
+- **Interactive Visualizations:** High-fidelity historical price charts rendered via interactive `Plotly` graphs.
 
 ### 3. Sandbox Investment Simulator (Paper-Trading Desk)
 - **Live Capital Engine:** Real-time spot valuation with an initial $10,000 liquidity balance.
@@ -46,7 +46,6 @@ A progressive academic sequence designed around foundational and quantitative in
 - **Data Engineering:** [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/)
 - **Market Data Provider:** [yfinance](https://pypi.org/project/yfinance/)
 - **Data Visualization:** [Plotly Graph Objects](https://plotly.com/python/)
-- **Machine Learning & Modeling:** [Scikit-Learn](https://scikit-learn.org/) (Linear Regression Engine)
 
 ---
 
